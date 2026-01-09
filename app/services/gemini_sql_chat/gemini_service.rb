@@ -193,13 +193,18 @@ module GeminiSqlChat
 
       FORMATO DE RESPUESTA:
       
-      CASO A: SI REQUIERE CONSULTA SQL
+      ANALIZA PRIMERO: ¿La respuesta a la pregunta del usuario YA ESTÁ en el "CONTEXTO CONVERSACIONAL" o en los "SQL" previos?
+      - SI ES ASÍ: NO GENERES NUEVO SQL. Responde usando el formato "CASO B".
+      - SI NO: Genera un nuevo SQL usando el formato "CASO A".
+
+      CASO A: SI REQUIERE CONSULTA SQL (No tienes la información en el contexto)
       {
         "sql": "SELECT ...",
         "suggested_questions": ["..."]
       }
 
       CASO B: SI PUEDES RESPONDER DIRECTAMENTE CON EL CONTEXTO (SIN SQL)
+      Usa esto cuando el usuario pregunte sobre datos que ya se mostraron en una tabla anterior o en el texto del chat.
       {
         "text_answer": "La respuesta es...",
         "suggested_questions": ["..."]
