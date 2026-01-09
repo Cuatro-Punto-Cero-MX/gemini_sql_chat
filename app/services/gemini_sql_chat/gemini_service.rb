@@ -205,7 +205,10 @@ module GeminiSqlChat
       }
 
       CASO B: SI PUEDES RESPONDER DIRECTAMENTE CON EL CONTEXTO (SIN SQL)
-      Usa esto cuando el usuario pregunte sobre datos que ya se mostraron en una tabla anterior o en el texto del chat.
+      Usa este formato si:
+      1. La respuesta ya está visible en la conversación anterior (texto o tabla).
+      2. El usuario pide filtrar, contar o buscar sobre los resultados que ACABAS de mostrar (ej. "de esos...", "cuántos son...", "¿cuáles tienen...?").
+      En este caso, NO generes SQL. Filtra los datos mentalmente y responde.
       {
         "text_answer": "La respuesta es...",
         "suggested_questions": ["..."]
