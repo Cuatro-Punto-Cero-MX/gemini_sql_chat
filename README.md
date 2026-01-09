@@ -55,29 +55,53 @@ Un motor de Rails que proporciona un chatbot inteligente con capacidades de gene
 
 ## Configuración y Personalización
 
-### Layout
-El motor hereda del `ApplicationController` de tu aplicación principal y utiliza el `layout "default"` por defecto.
 
-Si tu aplicación utiliza otro layout (por ejemplo `application`), puedes crear un initializer en `config/initializers/gemini_chat.rb` para configurarlo:
+## Configuración y Personalización
+
+Para configurar el motor, se recomienda crear un archivo initializer en tu aplicación, por ejemplo `config/initializers/gemini_sql_chat.rb`.
+
+### 1. Configurar Layout
+Por defecto, el motor usa el layout `"default"`. Si tu aplicación usa `application.html.erb` u otro, configúralo así:
 
 ```ruby
-# config/initializers/gemini_chat.rb
+# config/initializers/gemini_sql_chat.rb
 GeminiSqlChat::ChatController.layout "application"
 ```
 
-### Contexto de Negocio Personalizado (Custom Context)
-Puedes inyectar reglas de negocio específicas o descripciones adicionales que se enviarán al modelo de IA en cada consulta. Esto es útil para explicarle al asistente lógica específica de tu dominio.
+### 2. Contexto de Negocio Personalizado (Custom Context)
+Puedes inyectar reglas de negocio específicas que ayudarán a la IA a entender mejor tu base de datos y evitar alucinaciones.
 
-En tu initializer `config/initializers/gemini_chat.rb`:
+#### Ejemplo Básico (Texto Estático)
+Útil para definiciones constantes del negocio.
 
 ```ruby
 GeminiSqlChat.setup do |config|
-  # Opción A: Texto estático
-  config.additional_context = "Solo considera ventas 'Completadas'. La tabla 'users' son los empleados."
+  config.additional_context = <<~TEXT
+    REGLAS DE NEGOCIO:
+    1. La tabla 'users' contiene tanto empleados como clientes. Los empleados tienen role='admin' o 'vendedor'.
+    2. Las ventas solo se consideran válidas si estado_venta_id = 5 (Completada).
+    3. Ignora la tabla 'tmp_importaciones'.
+  TEXT
+end
+```
 
-  # Opción B: Bloque dinámico (se evalúa en cada request)
+#### Ejemplo Avanzado (Contexto Dinámico)
+Útil si necesitas que el contexto cambie según el usuario actual, la fecha, o el environment.
+
+```ruby
+GeminiSqlChat.setup do |config|
   config.additional_context = -> { 
-    "Hoy es #{Date.today}. El usuario actual tiene rol: #{Current.user&.role}" 
+    # Este bloque se ejecuta en cada petición
+    user = Current.user
+    role_info = user.admin? ? "El usuario es Administrador total." : "El usuario es un Vendedor de la sucursal #{user.sucursal_id}."
+    
+    <<~CONTEXT
+      FECHA ACTUAL: #{Date.today}
+      USUARIO ACTUAL: #{user.name} (#{user.email})
+      PERMISOS: #{role_info}
+      
+      NOTA: Si el usuario pregunta por "mis ventas", filtra por user_id = #{user.id}.
+    CONTEXT
   }
 end
 ```
