@@ -185,6 +185,7 @@ module GeminiSqlChat
       8. Si la pregunta hace referencia a resultados anteriores, usa el contexto conversacional para entender la consulta
       9. ⚠️ CRÍTICO: USA SOLO LAS COLUMNAS LISTADAS EN EL ESQUEMA. No inventes columnas (ej. no asumas `name` si solo existe `email` o `first_name`). Si no estás seguro, usa `SELECT *`.
       10. Para comparaciones de texto, usa SIEMPRE `ILIKE` en lugar de `=` (ej. `nombre ILIKE '%juan%'` o `status ILIKE 'activo'`) para evitar problemas de mayúsculas/minúsculas.
+      11. ANTES DE GENERAR UNA RESPUESTA, ANALIZA MENTALMENTE: ¿La respuesta ya está en el contexto conversacional? Si es así, usa el formato "CASO B" (Texto) en lugar de generar un nuevo SQL redundante. NO expliques este análisis en la respuesta final.
 
       REGLAS IMPORTANTES PARA PREGUNTAS SUGERIDAS:
       1. Genera 2-3 preguntas de seguimiento relevantes y útiles basadas en el contexto
@@ -195,10 +196,7 @@ module GeminiSqlChat
       #{additional_context}
 
       FORMATO DE RESPUESTA:
-      
-      ANALIZA PRIMERO: ¿La respuesta a la pregunta del usuario YA ESTÁ en el "CONTEXTO CONVERSACIONAL" o en los "SQL" previos?
-      - SI ES ASÍ: NO GENERES NUEVO SQL. Responde usando el formato "CASO B".
-      - SI NO: Genera un nuevo SQL usando el formato "CASO A".
+      Debes responder ÚNICAMENTE con un objeto JSON. NO incluyas texto introductorio ni explicaciones fuera del JSON.
 
       CASO A: SI REQUIERE CONSULTA SQL (No tienes la información en el contexto)
       {
