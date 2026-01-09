@@ -78,7 +78,7 @@ module GeminiSqlChat
     PROMPT
 
     response = self.class.post(
-      "/v1beta/models/gemini-1.5-flash:generateContent",
+      "/v1beta/models/gemini-2.5-flash:generateContent",
       query: { key: @api_key },
       headers: { 'Content-Type' => 'application/json' },
       body: {
@@ -105,7 +105,7 @@ module GeminiSqlChat
     # Let's keep the existing logic but update `extract_sql_from_response` to handle the new JSON format.
     
     response = self.class.post(
-      "/v1beta/models/gemini-1.5-flash:generateContent",
+      "/v1beta/models/gemini-2.5-flash:generateContent",
       query: { key: @api_key },
       headers: { 'Content-Type' => 'application/json' },
       body: {
