@@ -303,8 +303,19 @@ module GeminiSqlChat
           # Es SQL plano (fallback antiguo)
           sql = cleaned_text.gsub(/^sql:/i, '').gsub(/;$/, '').strip
           return { sql: sql, suggested_questions: [] }
+          
+        elsif cleaned_text.include?('"text_answer"')
+          # Es un intento de JSON que falló (posiblemente truncado o mal formado)
+          # Intentamos rescatar el texto con regex
+          match = cleaned_text.match(/"text_answer"\s*:\s*"(.*?)"/m) || cleaned_text.match(/"text_answer"\s*:\s*"(.*)/m)
+          
+          text = match ? match[1] : cleaned_text
+          # Limpiar caracteres de cierre de JSON si quedaron pegados (ej. "} o " })
+          text = text.gsub(/\"\}\s*$/, '').gsub(/\"\s*$/, '').strip
+          
+          return { text_answer: text, suggested_questions: [] }
         else
-          # Es una respuesta de texto plano (fallback nuevo para CASO B mal formado)
+          # Es una respuesta de texto plano pura
           return { text_answer: cleaned_text, suggested_questions: [] }
         end
       end
