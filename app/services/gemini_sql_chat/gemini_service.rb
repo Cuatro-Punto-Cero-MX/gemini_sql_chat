@@ -262,7 +262,14 @@ module GeminiSqlChat
       content = response.dig('candidates', 0, 'content', 'parts', 0, 'text')
       raise 'Contenido vacío' if content.blank?
 
+      # Limpiar el contenido de posibles markdown o formato
       cleaned_content = content.strip.gsub(/```json\n?/, '').gsub(/```\n?/, '').strip
+
+      # Intentar extraer JSON si está mezclado con texto
+      if cleaned_content.include?('{') && cleaned_content.include?('}')
+        json_match = cleaned_content.match(/\{.*\}/m)
+        cleaned_content = json_match[0] if json_match
+      end
 
       begin
         parsed_response = JSON.parse(cleaned_content)
