@@ -24,7 +24,11 @@ module GeminiSqlChat
       columns = model.columns.reject { |c| IGNORED_COLUMNS.include?(c.name) }
       col_names = columns.map(&:name).join(', ')
       
-      schema_text += "#{index + 1}. #{model.table_name} (#{col_names})\n"
+      has_soft_delete = columns.any? { |c| c.name == 'deleted_at' }
+      table_info = "#{index + 1}. #{model.table_name} (#{col_names})"
+      table_info += " [SOFT DELETE]" if has_soft_delete
+      
+      schema_text += "#{table_info}\n"
     end
 
     schema_text += "\nRELACIONES:\n"

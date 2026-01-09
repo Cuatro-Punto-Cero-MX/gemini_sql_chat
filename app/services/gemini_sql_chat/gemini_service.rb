@@ -116,7 +116,7 @@ module GeminiSqlChat
       4. Para fechas, usa el formato 'YYYY-MM-DD'
       5. Usa alias descriptivos para las columnas (ej. `u` para `users`)
       6. No uses punto y coma al final
-      7. ⚠️ MUY IMPORTANTE: SIEMPRE agrega "AND tabla.deleted_at IS NULL" para CADA tabla en el WHERE clause SI la tabla tiene la columna `deleted_at`.
+      7. ⚠️ MUY IMPORTANTE: SIEMPRE agrega "AND tabla.deleted_at IS NULL" para las tablas marcadas con [SOFT DELETE]. Si NO tiene la marca, NO lo agregues.
       8. Si la pregunta hace referencia a resultados anteriores, usa el contexto conversacional para entender la consulta
       9. ⚠️ CRÍTICO: USA SOLO LAS COLUMNAS LISTADAS EN EL ESQUEMA. No inventes columnas (ej. no asumas `name` si solo existe `email` o `first_name`). Si no estás seguro, usa `SELECT *`.
 
