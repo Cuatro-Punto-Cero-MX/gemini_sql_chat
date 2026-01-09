@@ -1,0 +1,857 @@
+<div class="flex h-[calc(100vh-200px)] w-full gap-4">
+  <!-- Sidebar de conversaciones -->
+  <div id="conversations-sidebar" class="w-64 flex-shrink-0 flex flex-col overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg">
+    <!-- Header del sidebar -->
+    <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-3">
+      <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Conversaciones</h3>
+      <button
+        id="new-conversation-btn"
+        class="p-1.5 rounded-lg bg-primary hover:bg-primary/90 text-white transition-all hover:scale-105"
+        title="Nueva conversación"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Lista de conversaciones -->
+    <div id="conversations-list" class="flex-1 overflow-y-auto p-2 space-y-1">
+      <!-- Las conversaciones se cargarán aquí dinámicamente -->
+      <div class="flex items-center justify-center h-full text-sm text-gray-500 dark:text-gray-400">
+        <p>Cargando...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel principal de chat -->
+  <div class="flex-1 flex flex-col overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg">
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-6 py-4">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+          <span class="font-semibold text-sm text-gray-900 dark:text-white">Asistente SQL</span>
+        </div>
+        <div class="h-4 w-px bg-gray-300 dark:bg-gray-600"></div>
+        <span class="text-xs text-gray-500 dark:text-gray-400">
+          Google Gemini 2.5 Flash
+        </span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="context-indicator" class="hidden items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-xs text-blue-700 dark:text-blue-300">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+          <span id="context-count">0</span> mensajes de contexto
+        </span>
+      </div>
+    </div>
+
+    <!-- Conversation Area -->
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
+      <!-- Mensaje de bienvenida inicial -->
+      <div class="flex items-start gap-3 animate-fade-in">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-semibold">
+            AI
+          </div>
+        </div>
+        <div class="flex-1 space-y-2">
+          <div class="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-none px-4 py-3 max-w-[85%]">
+            <p class="text-sm text-gray-900 dark:text-gray-100 leading-relaxed">
+              ¡Hola! Soy tu asistente SQL con inteligencia artificial. Puedo ayudarte a consultar la base de datos usando lenguaje natural.
+            </p>
+            <p class="text-sm text-gray-900 dark:text-gray-100 leading-relaxed mt-2">
+              <strong>Ejemplos de preguntas:</strong>
+            </p>
+            <ul class="text-xs mt-2 space-y-1.5 text-gray-600 dark:text-gray-400">
+              <li class="flex items-start gap-2">
+                <span class="text-primary mt-0.5">•</span>
+                <span>¿Cuáles son las ventas del mes actual?</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-primary mt-0.5">•</span>
+                <span>¿Qué productos se han vendido más?</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-primary mt-0.5">•</span>
+                <span>¿Cuántos clientes hay en cada estado?</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-primary mt-0.5">•</span>
+                <span>¿Cuál es el total de ventas por canal?</span>
+              </li>
+            </ul>
+            <p class="text-xs mt-3 text-primary font-medium">
+              💡 Tip: Puedes hacer preguntas de seguimiento como "¿Y cuántas hay en Jalisco?" basándote en resultados anteriores
+            </p>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500 px-1">
+            <span>Justo ahora</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-900 relative">
+      <!-- Scroll to Bottom Button (flotante) -->
+      <button
+        id="scroll-to-bottom-btn"
+        class="hidden absolute -top-16 right-4 w-10 h-10 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-lg flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-all hover:scale-110"
+        style="z-index: 20;"
+      >
+        <svg class="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+        </svg>
+      </button>
+
+      <form id="chat-form">
+        <div class="flex items-end gap-2">
+          <div class="flex-1 relative">
+            <textarea
+              id="chat-input"
+              rows="1"
+              class="w-full resize-none rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              placeholder="Pregunta sobre las ventas, productos, clientes..."
+              style="min-height: 48px; max-height: 200px;"
+            ></textarea>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            id="chat-submit-btn"
+            class="flex-shrink-0 w-10 h-10 rounded-lg bg-primary hover:bg-primary/90 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 mb-1"
+          >
+            <svg id="send-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+            <svg id="stop-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="flex items-center justify-between mt-3 px-1">
+          <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+            <span>Solo consultas SELECT permitidas</span>
+          </div>
+          <div class="text-xs text-gray-400 dark:text-gray-500">
+            Presiona <kbd class="px-1.5 py-0.5 text-xs font-semibold text-gray-800 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded">Enter</kbd> para enviar
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Animaciones */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+
+  /* Scrollbar personalizado */
+  #chat-messages::-webkit-scrollbar,
+  #conversations-list::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  #chat-messages::-webkit-scrollbar-track,
+  #conversations-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  #chat-messages::-webkit-scrollbar-thumb,
+  #conversations-list::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 10px;
+  }
+
+  #chat-messages::-webkit-scrollbar-thumb:hover,
+  #conversations-list::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+
+  .dark #chat-messages::-webkit-scrollbar-thumb,
+  .dark #conversations-list::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+
+  .dark #chat-messages::-webkit-scrollbar-thumb:hover,
+  .dark #conversations-list::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+
+  /* Textarea auto-resize */
+  #chat-input {
+    overflow-y: hidden;
+  }
+
+  /* Typing dots animation */
+  @keyframes typing-dots {
+    0%, 60%, 100% {
+      opacity: 0.3;
+    }
+    30% {
+      opacity: 1;
+    }
+  }
+
+  .typing-dot:nth-child(1) {
+    animation: typing-dots 1.4s infinite;
+  }
+
+  .typing-dot:nth-child(2) {
+    animation: typing-dots 1.4s infinite 0.2s;
+  }
+
+  .typing-dot:nth-child(3) {
+    animation: typing-dots 1.4s infinite 0.4s;
+  }
+
+  /* Tabla de resultados */
+  .results-table {
+    overflow-x: auto;
+    margin-top: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+  }
+
+  .dark .results-table {
+    border-color: #374151;
+  }
+
+  .results-table table {
+    width: 100%;
+    font-size: 0.875rem;
+    border-collapse: collapse;
+  }
+
+  .results-table th {
+    background-color: #f9fafb;
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1px solid #e5e7eb;
+    color: #111827;
+  }
+
+  .dark .results-table th {
+    background-color: #1f2937;
+    border-bottom-color: #374151;
+    color: #f9fafb;
+  }
+
+  .results-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+  }
+
+  .dark .results-table td {
+    border-bottom-color: #374151;
+    color: #d1d5db;
+  }
+
+  .results-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .results-table tbody tr:hover {
+    background-color: #f9fafb;
+  }
+
+  .dark .results-table tbody tr:hover {
+    background-color: #1f2937;
+  }
+
+  /* SQL Code block */
+  .sql-code {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.75rem;
+    overflow-x: auto;
+    color: #111827;
+  }
+
+  .dark .sql-code {
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+
+  /* Conversation item hover */
+  .conversation-item {
+    transition: all 0.2s;
+  }
+
+  .conversation-item:hover {
+    transform: translateX(2px);
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('✅ Chat loaded successfully!');
+
+  const form = document.getElementById('chat-form');
+  const input = document.getElementById('chat-input');
+  const submitBtn = document.getElementById('chat-submit-btn');
+  const sendIcon = document.getElementById('send-icon');
+  const stopIcon = document.getElementById('stop-icon');
+  const messagesContainer = document.getElementById('chat-messages');
+  const scrollBtn = document.getElementById('scroll-to-bottom-btn');
+  const newConversationBtn = document.getElementById('new-conversation-btn');
+  const conversationsList = document.getElementById('conversations-list');
+  const contextIndicator = document.getElementById('context-indicator');
+  const contextCount = document.getElementById('context-count');
+
+  let isProcessing = false;
+  let currentConversationId = null;
+
+  // Auto-resize textarea
+  input.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+  });
+
+  // Handle Enter key (submit) vs Shift+Enter (new line)
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      form.dispatchEvent(new Event('submit'));
+    }
+  });
+
+  // Form submit
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const question = input.value.trim();
+    if (!question || isProcessing) return;
+
+    isProcessing = true;
+    updateSubmitButton(true);
+
+    addUserMessage(question);
+    input.value = '';
+    input.style.height = 'auto';
+
+    const thinkingId = showThinking();
+    fetchResponse(question, thinkingId);
+  });
+
+  // Nueva conversación
+  newConversationBtn.addEventListener('click', function() {
+    if (confirm('¿Iniciar una nueva conversación?')) {
+      startNewConversation();
+    }
+  });
+
+  // Scroll to bottom button
+  messagesContainer.addEventListener('scroll', function() {
+    const isNearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight < 100;
+    scrollBtn.classList.toggle('hidden', isNearBottom);
+  });
+
+  scrollBtn.addEventListener('click', function() {
+    scrollToBottom(true);
+  });
+
+  // Cargar conversaciones al iniciar
+  loadConversations();
+
+  function updateSubmitButton(processing) {
+    if (processing) {
+      submitBtn.disabled = true;
+      sendIcon.classList.add('hidden');
+      stopIcon.classList.remove('hidden');
+    } else {
+      submitBtn.disabled = false;
+      sendIcon.classList.remove('hidden');
+      stopIcon.classList.add('hidden');
+    }
+  }
+
+  function addUserMessage(text) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'flex items-start gap-3 justify-end animate-fade-in';
+
+    const timestamp = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+    messageDiv.innerHTML = `
+      <div class="flex-1 space-y-2 flex flex-col items-end">
+        <div class="bg-primary text-white rounded-2xl rounded-tr-none px-4 py-3 max-w-[85%]">
+          <p class="text-sm leading-relaxed">${escapeHtml(text)}</p>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500 px-1">
+          <span>${timestamp}</span>
+        </div>
+      </div>
+      <div class="flex-shrink-0">
+        <div class="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-gray-700 dark:text-gray-300 text-sm font-semibold">
+          Tú
+        </div>
+      </div>
+    `;
+
+    messagesContainer.appendChild(messageDiv);
+    scrollToBottom();
+  }
+
+  function showThinking() {
+    const thinkingId = `thinking-${Date.now()}`;
+    const messageDiv = document.createElement('div');
+    messageDiv.id = thinkingId;
+    messageDiv.className = 'flex items-start gap-3 animate-fade-in';
+
+    messageDiv.innerHTML = `
+      <div class="flex-shrink-0">
+        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-semibold">
+          AI
+        </div>
+      </div>
+      <div class="flex-1 space-y-2">
+        <div class="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-none px-4 py-3 max-w-[85%]">
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-500 dark:text-gray-400">Pensando</span>
+            <div class="flex gap-1">
+              <div class="w-2 h-2 rounded-full bg-gray-400 typing-dot"></div>
+              <div class="w-2 h-2 rounded-full bg-gray-400 typing-dot"></div>
+              <div class="w-2 h-2 rounded-full bg-gray-400 typing-dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    messagesContainer.appendChild(messageDiv);
+    scrollToBottom();
+    return thinkingId;
+  }
+
+  function hideThinking(thinkingId) {
+    const element = document.getElementById(thinkingId);
+    if (element) element.remove();
+  }
+
+  function addBotMessage(data) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'flex items-start gap-3 animate-fade-in';
+
+    const timestamp = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+    let contentHTML = '';
+
+    if (data.results && data.results.length > 0) {
+      contentHTML = `
+        <p class="text-sm text-gray-700 dark:text-gray-300 mb-3">
+          ✅ Encontré <strong>${data.count}</strong> ${data.count === 1 ? 'resultado' : 'resultados'}
+        </p>
+        ${renderTable(data.columns, data.results)}
+      `;
+    } else {
+      contentHTML = `
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          No se encontraron resultados para esta consulta.
+        </p>
+      `;
+    }
+
+    // SQL Query (collapsible)
+    let sqlHTML = '';
+    if (data.sql) {
+      sqlHTML = `
+        <details class="mt-3 group">
+          <summary class="cursor-pointer text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-primary transition-colors select-none flex items-center gap-2">
+            <svg class="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+            Ver consulta SQL generada
+          </summary>
+          <div class="sql-code mt-2">
+            <code>${escapeHtml(data.sql)}</code>
+          </div>
+        </details>
+      `;
+    }
+
+    // Preguntas sugeridas
+    let suggestedQuestionsHTML = '';
+    if (data.suggested_questions && data.suggested_questions.length > 0) {
+      suggestedQuestionsHTML = `
+        <div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+          <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+            Preguntas sugeridas
+          </p>
+          <div class="flex flex-col gap-2">
+            ${data.suggested_questions.map(question => `
+              <button
+                class="suggested-question-btn text-left px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 hover:border-primary dark:hover:border-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-all text-xs text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary flex items-start gap-2 group"
+                data-question="${escapeHtml(question)}"
+              >
+                <svg class="w-4 h-4 flex-shrink-0 mt-0.5 opacity-50 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                <span>${escapeHtml(question)}</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    messageDiv.innerHTML = `
+      <div class="flex-shrink-0">
+        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-semibold">
+          AI
+        </div>
+      </div>
+      <div class="flex-1 space-y-2">
+        <div class="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-none px-4 py-3 max-w-[95%]">
+          ${contentHTML}
+          ${sqlHTML}
+          ${suggestedQuestionsHTML}
+        </div>
+        <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500 px-1">
+          <span>${timestamp}</span>
+        </div>
+      </div>
+    `;
+
+    messagesContainer.appendChild(messageDiv);
+
+    // Agregar event listeners a los botones de preguntas sugeridas
+    const suggestedBtns = messageDiv.querySelectorAll('.suggested-question-btn');
+    suggestedBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const question = this.getAttribute('data-question');
+        if (question) {
+          input.value = question;
+          input.focus();
+          // Auto-enviar la pregunta
+          form.dispatchEvent(new Event('submit'));
+        }
+      });
+    });
+
+    scrollToBottom();
+  }
+
+  function addErrorMessage(error) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'flex items-start gap-3 animate-fade-in';
+
+    const timestamp = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+    messageDiv.innerHTML = `
+      <div class="flex-shrink-0">
+        <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-sm font-semibold">
+          AI
+        </div>
+      </div>
+      <div class="flex-1 space-y-2">
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl rounded-tl-none px-4 py-3 max-w-[85%]">
+          <div class="flex items-start gap-2">
+            <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+              <p class="text-sm font-semibold text-red-900 dark:text-red-100 mb-1">Error</p>
+              <p class="text-sm text-red-800 dark:text-red-200">${escapeHtml(error)}</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500 px-1">
+          <span>${timestamp}</span>
+        </div>
+      </div>
+    `;
+
+    messagesContainer.appendChild(messageDiv);
+    scrollToBottom();
+  }
+
+  function fetchResponse(question, thinkingId) {
+    fetch('/gemini_chat/query', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+      },
+      body: JSON.stringify({
+        question: question,
+        conversation_id: currentConversationId
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      hideThinking(thinkingId);
+      isProcessing = false;
+      updateSubmitButton(false);
+
+      if (data.success) {
+        // Actualizar conversation_id si es nueva
+        if (data.conversation_id) {
+          currentConversationId = data.conversation_id;
+          updateContextIndicator();
+        }
+
+        addBotMessage(data);
+
+        // Recargar lista de conversaciones
+        loadConversations();
+      } else {
+        addErrorMessage(data.error || 'Error al procesar la pregunta');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      hideThinking(thinkingId);
+      isProcessing = false;
+      updateSubmitButton(false);
+      addErrorMessage('Error de conexión. Por favor, intenta nuevamente.');
+    });
+  }
+
+  function loadConversations() {
+    fetch('/gemini_chat/conversations', {
+      headers: {
+        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        renderConversations(data.conversations);
+      }
+    })
+    .catch(error => {
+      console.error('Error loading conversations:', error);
+    });
+  }
+
+  function renderConversations(conversations) {
+    if (conversations.length === 0) {
+      conversationsList.innerHTML = `
+        <div class="flex items-center justify-center h-full text-sm text-gray-500 dark:text-gray-400 px-2 text-center">
+          <p>No hay conversaciones previas.<br>¡Inicia una nueva!</p>
+        </div>
+      `;
+      return;
+    }
+
+    conversationsList.innerHTML = conversations.map(conv => `
+      <div
+        data-conversation-id="${conv.id}"
+        class="conversation-item p-3 rounded-lg cursor-pointer transition-all ${conv.id === currentConversationId ? 'bg-primary/10 border border-primary/20' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}"
+        onclick="window.chatApp.loadConversation(${conv.id})"
+      >
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">${escapeHtml(conv.title || 'Sin título')}</p>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-xs text-gray-500 dark:text-gray-400">${conv.messages_count} mensajes</span>
+            </div>
+          </div>
+          <button
+            onclick="window.chatApp.deleteConversation(${conv.id}, event)"
+            class="flex-shrink-0 p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+            title="Eliminar"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function loadConversation(conversationId) {
+    if (conversationId === currentConversationId) return;
+
+    fetch(`/gemini_chat/conversations/${conversationId}`, {
+      headers: {
+        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        currentConversationId = conversationId;
+        renderConversationMessages(data.conversation.messages);
+        updateContextIndicator();
+        loadConversations(); // Refresh sidebar to highlight
+      }
+    })
+    .catch(error => {
+      console.error('Error loading conversation:', error);
+    });
+  }
+
+  function renderConversationMessages(messages) {
+    // Limpiar mensajes actuales
+    messagesContainer.innerHTML = '';
+
+    messages.forEach(msg => {
+      if (msg.role === 'user') {
+        addUserMessage(msg.content);
+      } else if (msg.role === 'assistant') {
+        // Usar los datos reales si están disponibles
+        const botData = {
+          results: msg.results || [],
+          columns: msg.columns || [],
+          count: msg.results_count || 0,
+          sql: msg.sql_query,
+          suggested_questions: msg.suggested_questions || []
+        };
+
+        // Usar la función addBotMessage existente para mantener consistencia
+        addBotMessage(botData);
+      }
+    });
+
+    scrollToBottom();
+  }
+
+  function startNewConversation() {
+    fetch('/gemini_chat/conversations/new', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        currentConversationId = null;
+        location.reload(); // Recargar para limpiar
+      }
+    })
+    .catch(error => {
+      console.error('Error starting new conversation:', error);
+    });
+  }
+
+  function deleteConversation(conversationId, event) {
+    event.stopPropagation(); // Evitar que se active el click del item
+
+    if (!confirm('¿Eliminar esta conversación?')) return;
+
+    fetch(`/gemini_chat/conversations/${conversationId}`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        if (conversationId === currentConversationId) {
+          location.reload(); // Si es la actual, recargar
+        } else {
+          loadConversations(); // Solo refrescar lista
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error deleting conversation:', error);
+    });
+  }
+
+  function updateContextIndicator() {
+    if (currentConversationId) {
+      // Mostrar indicador (simplificado, podrías obtener el count real del servidor)
+      contextIndicator.classList.remove('hidden');
+      contextIndicator.classList.add('flex');
+      // Count real lo obtendrías del servidor si lo necesitas
+    } else {
+      contextIndicator.classList.add('hidden');
+      contextIndicator.classList.remove('flex');
+    }
+  }
+
+  function renderTable(columns, data) {
+    if (!columns || columns.length === 0 || !data || data.length === 0) {
+      return '<p class="text-sm text-gray-600 dark:text-gray-400">No hay datos para mostrar</p>';
+    }
+
+    let html = '<div class="results-table mt-3"><table>';
+
+    html += '<thead><tr>';
+    columns.forEach(col => {
+      html += `<th>${escapeHtml(col)}</th>`;
+    });
+    html += '</tr></thead>';
+
+    html += '<tbody>';
+    data.forEach(row => {
+      html += '<tr>';
+      columns.forEach(col => {
+        const value = row[col];
+        const displayValue = value !== null && value !== undefined ? String(value) : '-';
+        html += `<td>${escapeHtml(displayValue)}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+
+    return html;
+  }
+
+  function scrollToBottom(smooth = false) {
+    if (smooth) {
+      messagesContainer.scrollTo({
+        top: messagesContainer.scrollHeight,
+        behavior: 'smooth'
+      });
+    } else {
+      setTimeout(() => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }, 100);
+    }
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Exponer funciones globalmente para onclick handlers
+  window.chatApp = {
+    loadConversation,
+    deleteConversation
+  };
+
+  // Initial scroll
+  scrollToBottom();
+});
+</script>
